@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: ads-mongo
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    volumes:
+      - ads_mongo_data:/data/db
+
+  web:
+    build: .
+    container_name: ads-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      ADMIN_KEY: ${ADMIN_KEY}
+      ACCESS_TOKEN_TTL: ${ACCESS_TOKEN_TTL}
+      REFRESH_TOKEN_TTL: ${REFRESH_TOKEN_TTL}
+      # Critical: use service DNS name 'mongo' (container-to-container)
+      MONGO_URI: mongodb://admin:adminpass@mongo:27017/ausdietsupp?authSource=admin
+    depends_on:
+      - mongo
+
+volumes:
+  ads_mongo_data:
